@@ -16,6 +16,8 @@ public class Cont extends ServiciuFinanciar {
     }
 
 
+
+
     public Utilizator getUtilizator() {
         return utilizator;
     }

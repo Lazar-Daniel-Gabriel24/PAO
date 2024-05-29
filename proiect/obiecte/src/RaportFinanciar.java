@@ -1,7 +1,7 @@
 import java.util.Date;
 import java.util.List;
-public class RaportFinanciar {
 
+public class RaportFinanciar {
     private Cont cont;
     private Date dataInceput;
     private Date dataSfarsit;

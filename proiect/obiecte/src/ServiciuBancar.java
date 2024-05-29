@@ -1,17 +1,16 @@
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 
 public class ServiciuBancar {
     private static ServiciuBancar instance = null;
-
     private Utilizator utilizator = null;
-
+    private HashMap<String, Utilizator> userDataMap = new HashMap<>();
 
     private ServiciuBancar() {
     }
-    private HashMap<String, Utilizator> userDataMap = new HashMap<>();
 
     public static ServiciuBancar getInstance() {
         if (instance == null) {
@@ -20,20 +19,13 @@ public class ServiciuBancar {
         return instance;
     }
 
-    private void afiseazaUtilizator() {
-        if (this.utilizator != null) {
-            System.out.println(this.utilizator);
-            LocalDateTime localDateTime = LocalDateTime.now();
-        } else {
-            System.out.println("Niciun utilizator conectat!");
-        }
+    public void inregistreazaUtilizator(Utilizator utilizator) {
+        userDataMap.put(utilizator.getEmail(), utilizator);
     }
-    private Utilizator findUtilizator(String numeUtilizator, String parola) {
 
-        if (userDataMap.containsKey(numeUtilizator)) {
-            Utilizator utilizator = userDataMap.get(numeUtilizator);
-
-
+    private Utilizator findUtilizator(String email, String parola) {
+        if (userDataMap.containsKey(email)) {
+            Utilizator utilizator = userDataMap.get(email);
             if (utilizator.checkPassword(parola)) {
                 return utilizator;
             } else {
@@ -41,93 +33,128 @@ public class ServiciuBancar {
                 return null;
             }
         } else {
-            System.out.println("Numele de utilizator nu a fost găsit!");
+            System.out.println("Email-ul introdus nu a fost găsit!");
             return null;
         }
     }
 
-    private void autentificare(String numeUtilizator, String parola) {
-        this.utilizator = this.findUtilizator(numeUtilizator, parola);
-
-        if (this.utilizator == null) {
-            System.out.println("Numele de utilizator sau parola au fost introduse greșit, încercați din nou!");
+    protected void autentificare(String email, String parola) {
+        utilizator = findUtilizator(email, parola);
+        if (utilizator != null) {
+            System.out.println("Autentificare cu succes!");
         } else {
-            System.out.println("Autentificare realizată cu succes!");
+            System.out.println("Autentificare eșuată!");
         }
     }
-
-
-    private void deconectare() {
-        this.utilizator = null;
-        System.out.println("Deconectare reușită!");
-    }
-
-    private void transferBancar(Cont contSursa, Cont contDestinatie, double suma) throws InsufficientBalanceException {
-        if (contSursa.getSold() >= suma) {
-            contSursa.transfer(contDestinatie, suma);
-            System.out.println("Transfer de " + suma + " RON efectuat cu succes de la contul " + contSursa.getNumarCont() + " către contul " + contDestinatie.getNumarCont());
-        } else {
-            throw new InsufficientBalanceException("Sold insuficient în contul sursă pentru transferul de " + suma + " RON");
-        }
-    }
-
-    private void verificareSold(Cont cont) {
-        System.out.println("Soldul curent al contului " + cont.getNumarCont() + " este: " + cont.getSold() + " RON");
-    }
-
-    private void schimbareParola(String parolaVeche, String parolaNoua) {
-        this.utilizator.schimbaParola(parolaVeche, parolaNoua);
-    }
-
 
     public void meniu() {
+        if (utilizator == null) {
+            System.out.println("Nu sunteți autentificat.");
+            return;
+        }
+
         Scanner scanner = new Scanner(System.in);
-        int comanda;
+        int optiune;
 
-        while (true) {
-            System.out.println("Apăsați tastele:\n" +
-                    "  1. Autentificare\n" +
-                    "  2. Deconectare\n" +
-                    "  3. Transfer bancar\n" +
-                    "  4. Verificare sold\n" +
-                    "  5. Schimbare parolă\n" +
-                    "  6. Afișare raport financiar\n" +
-                    "  7. Ieșire");
+        do {
+            System.out.println("Meniu:");
+            System.out.println("1. Cere raport financiar");
+            System.out.println("2. Cere împrumut");
+            System.out.println("3. Autentificare cu dispozitiv");
+            System.out.println("4. Adaugă card bancar");
+            System.out.println("5. Schimbă parola");
+            System.out.println("0. Deconectare");
+            System.out.print("Alegeți o opțiune: ");
+            optiune = scanner.nextInt();
 
-            System.out.print("Comandă: ");
-            comanda = scanner.nextInt();
-
-            switch (comanda) {
+            switch (optiune) {
                 case 1:
-                    System.out.print("Introduceți numele de utilizator: ");
-                    String numeUtilizator = scanner.next();
-                    System.out.print("Introduceți parola: ");
-                    String parola = scanner.next();
-                    autentificare(numeUtilizator, parola);
+                    cereRaportFinanciar();
                     break;
                 case 2:
-                    deconectare();
+                    cereImprumut();
                     break;
                 case 3:
-
+                    autentificareCuDispozitiv();
                     break;
                 case 4:
-
+                    adaugaCardBancar();
                     break;
                 case 5:
-
+                    schimbaParola();
                     break;
-                case 6:
-
-                    break;
-                case 7:
-                    System.out.println("La revedere!");
-                    System.exit(0);
+                case 0:
+                    utilizator = null;
+                    System.out.println("Deconectare cu succes!");
                     break;
                 default:
-                    System.out.println("Comandă invalidă!");
-                    break;
+                    System.out.println("Opțiune invalidă!");
             }
+        } while (optiune != 0);
+    }
+
+    private void adaugaCardBancar() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Introduceți numărul contului pentru care doriți să adăugați cardul: ");
+        String numarCont = scanner.nextLine();
+
+        Cont cont = utilizator.getContByNumber(numarCont);
+        if (cont != null) {
+            CardBancar cardBancar = utilizator.createCard(cont);
+            utilizator.adaugaCardBancar(cardBancar);
+            System.out.println("Cardul bancar a fost adăugat cu succes!");
+        } else {
+            System.out.println("Numărul de cont introdus nu există sau nu aparține acestui utilizator.");
+        }
+    }
+
+    private void cereRaportFinanciar() {
+        Scanner scanner = new Scanner(System.in);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        System.out.println("Introduceți data de început (yyyy-MM-dd): ");
+        String start = scanner.nextLine();
+        System.out.println("Introduceți data de sfârșit (yyyy-MM-dd): ");
+        String end = scanner.nextLine();
+
+        try {
+            Date startDate = dateFormat.parse(start);
+            Date endDate = dateFormat.parse(end);
+
+            utilizator.getRaportFinanciar(startDate, endDate);
+        } catch (ParseException e) {
+            System.out.println("Formatul datei este incorect.");
+        }
+    }
+
+    private void cereImprumut() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Introduceți suma împrumutului: ");
+        double suma = scanner.nextDouble();
+        System.out.println("Introduceți numărul de luni pentru împrumut: ");
+        int luni = scanner.nextInt();
+
+        utilizator.cereImprumut(suma, luni);
+    }
+
+    private void autentificareCuDispozitiv() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Introduceți codul de autentificare: ");
+        String cod = scanner.next();
+        utilizator.autentificareCuDispozitiv(cod);
+    }
+
+    private void schimbaParola() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Introduceți parola veche: ");
+        String parolaVeche = scanner.nextLine();
+        System.out.println("Introduceți parola nouă: ");
+        String parolaNoua = scanner.nextLine();
+
+        if (utilizator.schimbaParola(parolaVeche, parolaNoua)) {
+            System.out.println("Parola a fost schimbată cu succes!");
+        } else {
+            System.out.println("Schimbarea parolei a eșuat!");
         }
     }
 }

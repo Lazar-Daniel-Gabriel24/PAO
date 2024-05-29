@@ -6,7 +6,7 @@ public class ServiciuFinanciar {
 
     private String nume;
     private String descriere;
-    private double cost;
+    protected double cost;
 
     private String serviceType;
 

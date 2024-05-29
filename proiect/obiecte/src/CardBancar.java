@@ -7,7 +7,6 @@ public class CardBancar {
     private Date dataExpirare;
     private int codSecuritate;
 
-
     public CardBancar(Cont cont, String numarCard, Date dataExpirare, int codSecuritate) {
         this.cont = cont;
         this.numarCard = numarCard;
@@ -47,14 +46,13 @@ public class CardBancar {
         this.codSecuritate = codSecuritate;
     }
 
-
     public double verificaSold() {
         return cont.getSold();
     }
 
     public void efectuaPlata(double suma) throws InsufficientBalanceException {
         if (verificaSold() >= suma) {
-            cont.transfer(null, suma);
+            cont.transfer(null, suma);  // Aici trebuie adăugată tranzacția în istoricul contului
             System.out.println("Plata de " + suma + " a fost efectuata cu succes.");
         } else {
             throw new InsufficientBalanceException("Sold insuficient pentru plata de " + suma);
